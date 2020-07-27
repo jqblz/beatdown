@@ -19,16 +19,19 @@ public class NoteData
     }
 }
 
-public class AudioPlayer : MonoBehaviour {
+public class RhythmController : MonoBehaviour {
     public AudioSource audioSource;
 
     public string path;
     public string simfileName;
 
-    public int beatMultiplierLog;
-    public double beatMultiplier { get; private set; }
+    public int strongBeatLog;
+    public double strongBeatSpeed { get; private set; }
 
-    [SerializeField] private NoteController[] boards;
+    public int subBeatLog;
+    public double subBeatSpeed { get; private set; }
+
+    [SerializeField] private NoteBoard[] boards;
     
     public BeatLerper beatLerper { get; private set; }
 
@@ -42,7 +45,7 @@ public class AudioPlayer : MonoBehaviour {
     private double song_start_time;
 
     public delegate void OnBeat(double beat);
-    public OnBeat onBeat;
+    private OnBeat onStrongBeat, onSubBeat;
 
     public Renderer bg_render;
 
@@ -65,12 +68,11 @@ public class AudioPlayer : MonoBehaviour {
 
         beatLerper = new BeatLerper(song.bpmEvents, song.offset);
         notes_iter = song.notes.OrderBy(note => note.beat);
-        beatMultiplier = System.Math.Pow(2, beatMultiplierLog);
-        //onBeat += SpawnNotes;
-        //onBeat += AnimateLines;
+        strongBeatSpeed = System.Math.Pow(2, strongBeatLog);
+        subBeatSpeed = System.Math.Pow(2, subBeatLog);
         ready = true;
 
-        foreach (NoteController board in boards)
+        foreach (NoteBoard board in boards)
         {
             board.Initialize(this, notes_iter);
         }
@@ -78,7 +80,15 @@ public class AudioPlayer : MonoBehaviour {
         Debug.Log("Ready.");
     }
 
-    private static void Noop(double _) { }
+    public void AddStrongBeatCallback(OnBeat callback)
+    {
+        onStrongBeat += callback;
+    }
+
+    public void AddSubBeatCallback(OnBeat callback)
+    {
+        onSubBeat += callback;
+    }
 
     public void PlaySong()
     {
@@ -101,9 +111,16 @@ public class AudioPlayer : MonoBehaviour {
         if (playing && SongTime() > song.offset)
         {
             double new_beat = SongBeat();
-            if (onBeat != null && System.Math.Truncate(new_beat * beatMultiplier) != System.Math.Truncate(old_beat * beatMultiplier))
+            //Debug.Log("beat " + old_beat + "->" + new_beat + ", " + old_beat * strongBeatSpeed + "->" + new_beat * strongBeatSpeed);
+            if (onStrongBeat != null && System.Math.Truncate(new_beat * strongBeatSpeed) != System.Math.Truncate(old_beat * strongBeatSpeed))
             {
-                onBeat(new_beat);
+                onStrongBeat(new_beat);
+                //Debug.Log("executing strong beat callbacks");
+            }
+            if (onSubBeat != null && System.Math.Truncate(new_beat * subBeatSpeed) != System.Math.Truncate(old_beat * subBeatSpeed))
+            {
+                onSubBeat(new_beat);
+                //Debug.Log("executing sub beat callbacks");
             }
             old_beat = new_beat;
         }
@@ -122,6 +139,16 @@ public class AudioPlayer : MonoBehaviour {
     public double TimeUntilBeat(double beat)
     {
         return beatLerper.TimeFromBeat(beat) - SongTime();
+    }
+
+    public double TimeToNextStrongBeat()
+    {
+        return TimeUntilBeat(System.Math.Ceiling(SongBeat() * strongBeatSpeed) / strongBeatSpeed);
+    }
+
+    public double TimeToNextSubBeat()
+    {
+        return TimeUntilBeat(System.Math.Ceiling(SongBeat() * subBeatSpeed) / subBeatSpeed);
     }
 }
 

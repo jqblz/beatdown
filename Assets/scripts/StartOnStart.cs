@@ -5,11 +5,11 @@ using UnityEngine.UI;
 
 public class StartOnStart : MonoBehaviour
 {
-    private AudioPlayer player;
+    private RhythmController player;
 
     private void Start()
     {
-        player = GetComponent<AudioPlayer>();
+        player = GetComponent<RhythmController>();
     }
 
     private void Update()

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class NoteController : MonoBehaviour
+public class NoteBoard : MonoBehaviour
 {
     [SerializeField] private BoxCollider2D noteBox;
     [SerializeField] private LineRenderer topLine, bottomLine;
@@ -11,11 +11,19 @@ public class NoteController : MonoBehaviour
     [SerializeField] private Note note_prefab;
 
     [SerializeField] private bool reversed;
-    public double note_time;
+
+    public double visualOffset;
+
+    public double noteTime;
+    public double speedMultiplier
+    {
+        get { return 100f / noteTime; }
+        set { noteTime = 100f / value; }
+    }
 
     private const double note_pre_time = 0.5;
 
-    private AudioPlayer controller;
+    private RhythmController controller;
     private List<NoteData> notes;
 
     private float left_x, start_y, end_y, note_separation;
@@ -50,14 +58,14 @@ public class NoteController : MonoBehaviour
         arrowHolder.transform.Find("ArrowL").transform.position = new Vector2(GetNoteX(NoteType.left), end_y);
     }
 
-    public void Initialize(AudioPlayer controller_, IEnumerable<NoteData> notes_)
+    public void Initialize(RhythmController controller_, IEnumerable<NoteData> notes_)
     {
         controller = controller_;
         notes = (reversed ? notes_.Select(ReverseNote) : notes_).ToList();
-        controller.onBeat += SpawnNotes;
-        controller.onBeat += AnimateLines;
+        controller.AddSubBeatCallback(SpawnNotes);
+        controller.AddStrongBeatCallback(AnimateLines);
         Debug.Log("Note controller " + gameObject.name + " ready with " + notes.Count() + " notes");
-        Debug.Log("Beat multiplier = " + controller.beatMultiplier);
+        Debug.Log("Beat multiplier = " + controller.strongBeatSpeed);
     }
 
     public static NoteData ReverseNote(NoteData note)
@@ -98,8 +106,8 @@ public class NoteController : MonoBehaviour
     {
         double until = controller.TimeUntilBeat(beat);
         return until > 0
-            && until < note_time + note_pre_time
-            && Note.DoubleIsInteger(beat * controller.beatMultiplier);
+            && until < noteTime + note_pre_time
+            && Note.DoubleIsInteger(beat * controller.subBeatSpeed);
     }
 
     private void AnimateLines(double _)
