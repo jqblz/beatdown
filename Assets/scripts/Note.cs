@@ -8,8 +8,8 @@ public class Note : MonoBehaviour {
 
     private RhythmController rhythm;
     private NoteBoard noteBoard;
-    private double beat;
-    private NoteType type;
+    public double beat { get; private set; }
+    public NoteType type { get; private set; }
 
     private bool added = false;
 

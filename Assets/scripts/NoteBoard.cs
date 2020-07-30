@@ -52,10 +52,10 @@ public class NoteBoard : MonoBehaviour
         end_y = tr.y;
 
         // Set up the target arrows
-        arrowHolder.transform.Find("ArrowR").transform.position = new Vector2(GetNoteX(NoteType.right), end_y);
-        arrowHolder.transform.Find("ArrowU").transform.position = new Vector2(GetNoteX(NoteType.up), end_y);
-        arrowHolder.transform.Find("ArrowD").transform.position = new Vector2(GetNoteX(NoteType.down), end_y);
-        arrowHolder.transform.Find("ArrowL").transform.position = new Vector2(GetNoteX(NoteType.left), end_y);
+        arrowHolder.transform.Find("ArrowR").transform.position = new Vector2(GetNoteX(NoteType.Right), end_y);
+        arrowHolder.transform.Find("ArrowU").transform.position = new Vector2(GetNoteX(NoteType.Up), end_y);
+        arrowHolder.transform.Find("ArrowD").transform.position = new Vector2(GetNoteX(NoteType.Down), end_y);
+        arrowHolder.transform.Find("ArrowL").transform.position = new Vector2(GetNoteX(NoteType.Left), end_y);
     }
 
     public void Initialize(RhythmController controller_, IEnumerable<NoteData> notes_)
@@ -65,17 +65,17 @@ public class NoteBoard : MonoBehaviour
         controller.AddSubBeatCallback(SpawnNotes);
         controller.AddStrongBeatCallback(AnimateLines);
         Debug.Log("Note controller " + gameObject.name + " ready with " + notes.Count() + " notes");
-        Debug.Log("Beat multiplier = " + controller.strongBeatSpeed);
+        //Debug.Log("Beat multiplier = " + controller.strongBeatSpeed);
     }
 
     public static NoteData ReverseNote(NoteData note)
     {
         switch (note.direction)
         {
-            case NoteType.right:
-                return new NoteData(note.beat, NoteType.left);
-            case NoteType.left:
-                return new NoteData(note.beat, NoteType.right);
+            case NoteType.Right:
+                return new NoteData(note.beat, NoteType.Left);
+            case NoteType.Left:
+                return new NoteData(note.beat, NoteType.Right);
             default:
                 return note;
         }
@@ -107,7 +107,7 @@ public class NoteBoard : MonoBehaviour
         double until = controller.TimeUntilBeat(beat);
         return until > 0
             && until < noteTime + note_pre_time
-            && Note.DoubleIsInteger(beat * controller.subBeatSpeed);
+            /*&& Note.DoubleIsInteger(beat * controller.subBeatSpeed)*/;
     }
 
     private void AnimateLines(double _)
@@ -122,6 +122,20 @@ public class NoteBoard : MonoBehaviour
         yield return new WaitForSeconds(0.06f);
         topLine.widthMultiplier = .1f;
         bottomLine.widthMultiplier = .1f;
+    }
+
+    public void DeleteNote(NoteData target)
+    {
+        Debug.Log("deleteNote called, target note is " + target.direction + " on beat " + target.beat);
+        foreach (var note in FindObjectsOfType<Note>()) {
+            Debug.Log("checking " + note.type + " on beat " + note.beat);
+            if (note.type == target.direction && note.beat == target.beat) {
+                Destroy(note);
+                Debug.Log("found a match. deleting");
+                return;
+            }
+            Debug.Log("no match");
+        }
     }
 
     public float GetNoteX(NoteType type)

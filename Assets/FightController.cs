@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class FightController : MonoBehaviour
 {
-    public InputHandler player1, player2;
+    public InputHandler p1Input, p2Input;
 
     private RhythmController rhythm;
 
@@ -21,7 +21,7 @@ public class FightController : MonoBehaviour
 
     void OnStrongBeat(double beat)
     {
-        Debug.Log(string.Join("|", player1.GetInputs().Select(ch => ch.FriendlyRepr())));
+        /*Debug.Log("pulled command " + */p1Input.FinalizeCommand()/*.Stringify())*/;
     }
 
     void OnSubBeat(double beat)

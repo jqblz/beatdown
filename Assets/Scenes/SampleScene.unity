@@ -558,8 +558,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25d93025c4caea84e8556f392a703e30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player1: {fileID: 1272039622}
-  player2: {fileID: 1164025954}
+  p1Input: {fileID: 1272039622}
+  p2Input: {fileID: 1164025954}
 --- !u!1001 &1164025953
 PrefabInstance:
   m_ObjectHideFlags: 0

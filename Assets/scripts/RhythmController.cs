@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-public enum NoteType { down = 0, right = 1, up = 2, left = 3 };
+public enum NoteType { Down = 0, Right = 1, Up = 2, Left = 3 };
 
 [System.Serializable]
 public class NoteData
@@ -25,10 +25,8 @@ public class RhythmController : MonoBehaviour {
     public string path;
     public string simfileName;
 
-    public int strongBeatLog;
+    [SerializeField] private int gameSpeed;
     public double strongBeatSpeed { get; private set; }
-
-    public int subBeatLog;
     public double subBeatSpeed { get; private set; }
 
     [SerializeField] private NoteBoard[] boards;
@@ -42,10 +40,12 @@ public class RhythmController : MonoBehaviour {
     private IEnumerable<NoteData> notes_iter;
 
     private double old_beat;
-    private double song_start_time;
+    public double songStartTime { get; private set; }
 
     public delegate void OnBeat(double beat);
     private OnBeat onStrongBeat, onSubBeat;
+    public delegate void OnPlay();
+    private OnPlay onPlay;
 
     public Renderer bg_render;
 
@@ -68,14 +68,15 @@ public class RhythmController : MonoBehaviour {
 
         beatLerper = new BeatLerper(song.bpmEvents, song.offset);
         notes_iter = song.notes.OrderBy(note => note.beat);
-        strongBeatSpeed = System.Math.Pow(2, strongBeatLog);
-        subBeatSpeed = System.Math.Pow(2, subBeatLog);
-        ready = true;
-
+        strongBeatSpeed = System.Math.Pow(2, gameSpeed);
+        subBeatSpeed = System.Math.Pow(2, gameSpeed + 1);
+        
         foreach (NoteBoard board in boards)
         {
             board.Initialize(this, notes_iter);
         }
+
+        ready = true;
 
         Debug.Log("Ready.");
     }
@@ -90,12 +91,18 @@ public class RhythmController : MonoBehaviour {
         onSubBeat += callback;
     }
 
+    public void AddOnPlayCallback(OnPlay callback)
+    {
+        onPlay += callback;
+    }
+
     public void PlaySong()
     {
         Debug.Log(audioSource.clip);
         audioSource.Play(0);
-        song_start_time = AudioSettings.dspTime;
+        songStartTime = AudioSettings.dspTime;
         playing = true;
+        onPlay();
         Debug.Log("Playing!");
     }
 
@@ -128,7 +135,7 @@ public class RhythmController : MonoBehaviour {
     
     public double SongTime ()
     {
-        return AudioSettings.dspTime - song_start_time;
+        return AudioSettings.dspTime - songStartTime;
     }
 
     public double SongBeat()
@@ -141,14 +148,19 @@ public class RhythmController : MonoBehaviour {
         return beatLerper.TimeFromBeat(beat) - SongTime();
     }
 
-    public double TimeToNextStrongBeat()
+    public double NextStrongBeat()
     {
-        return TimeUntilBeat(System.Math.Ceiling(SongBeat() * strongBeatSpeed) / strongBeatSpeed);
+        return System.Math.Ceiling(SongBeat() * strongBeatSpeed) / strongBeatSpeed;
     }
 
-    public double TimeToNextSubBeat()
+    public double NextSubBeat()
     {
-        return TimeUntilBeat(System.Math.Ceiling(SongBeat() * subBeatSpeed) / subBeatSpeed);
+        return System.Math.Ceiling(SongBeat() * subBeatSpeed) / subBeatSpeed;
+    }
+
+    public IEnumerable<NoteData> GetAllNotes()
+    {
+        return notes_iter;
     }
 }
 

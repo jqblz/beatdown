@@ -20,10 +20,10 @@ public class Song
 public class BeatFile {
     private static readonly NoteType[] directionMap = new[]
     {
-        NoteType.left,
-        NoteType.down,
-        NoteType.up,
-        NoteType.right
+        NoteType.Left,
+        NoteType.Down,
+        NoteType.Up,
+        NoteType.Right
     };
 
     public static Song ParseStepfile(string smtext)
